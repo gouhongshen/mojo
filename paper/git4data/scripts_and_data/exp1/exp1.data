@@ -1,0 +1,91 @@
+clone 2049 objects, storage size = 2049 * object meta file size = 2049 * 157B
+sql copy 2049 objects, storage size = 2049 * object file size =  100GB
+
+C1 1K-rows-updates:
+
+branch-run1:
+  create T1 (branch clone): 0.162s
+  create T2 (branch clone): 0.150s
+  populate rnd_keys: 0.938s
+  update T2: 0.355s
+  branch diff T2 vs T1: 0.165s
+  branch merge T2 into T1: 0.271s
+
+branch-run2:
+  create T1 (branch clone): 0.158s
+  create T2 (branch clone): 0.152s
+  populate rnd_keys: 0.898s
+  update T2: 0.123s
+  branch diff T2 vs T1: 0.117s
+  branch merge T2 into T1: 0.246s
+
+branch-run3:
+  create T1 (branch clone): 0.163s
+  create T2 (branch clone): 0.162s
+  populate rnd_keys: 0.994s
+  update T2: 0.132s
+  branch diff T2 vs T1: 0.126s
+  branch merge T2 into T1: 0.263s
+
+branch-run4:
+  create T1 (branch clone): 0.213s
+  create T2 (branch clone): 0.158s
+  populate rnd_keys: 1.098s
+  update T2: 0.117s
+  branch diff T2 vs T1: 0.130s
+  branch merge T2 into T1: 0.256s
+
+branch-run5:
+  create T1 (branch clone): 0.159s
+  create T2 (branch clone): 0.155s
+  populate rnd_keys: 0.927s
+  update T2: 0.099s
+  branch diff T2 vs T1: 0.124s
+  branch merge T2 into T1: 0.271s
+
+
+sql-run1:
+  create T1 (sql copy): 123.692s
+  create T2 (sql copy): 106.848s
+  populate rnd_keys: 0.956s
+  update T2: 9.646s
+  sql diff T2 vs T1: 349.491s
+  sql merge T2 into T1: 172.858s
+
+sql-run2:
+  create T1 (sql copy): 123.064s  
+  create T2 (sql copy): 98.409s  
+  populate rnd_keys: 0.916s  
+  update T2: 9.145s  
+  sql diff T2 vs T1: 364.314s  
+  sql merge T2 into T1: 174.040s
+
+sql-run3:
+  create T1 (sql copy): 114.473s  
+  create T2 (sql copy): 115.822s  
+  populate rnd_keys: 0.886s  
+  update T2: 10.540s  
+  sql diff T2 vs T1: 337.115s  
+  sql merge T2 into T1: 186.577s
+
+sql-run4:
+  create T1 (sql copy): 125.581s  
+  create T2 (sql copy): 102.763s  
+  populate rnd_keys: 0.996s  
+  update T2: 10.075s  
+  sql diff T2 vs T1: 314.901s  
+  sql merge T2 into T1: 168.456s
+
+sql-run5:
+  create T1 (sql copy): 112.645s  
+  create T2 (sql copy): 100.761s  
+  populate rnd_keys: 0.873s  
+  update T2: 8.730s  
+  sql diff T2 vs T1: 318.686s  
+  sql merge T2 into T1: 183.107s
+
+
+------------------------------------------
+
+C2 10K-rows-updates:
+
