@@ -692,23 +692,27 @@ Table \ref{tab:clone} shows the cost of clone vs insert, both in terms of time a
   \label{tab:clone}
   \begin{tabular}{lcc}
     \toprule
-    \textbf{Operation} & \textbf{Time (s)} & \textbf{Space (GB)} \\
+    \textbf{Operation} & \textbf{Time (s)} & \textbf{Space} \\
     \midrule
-    Clone, PK  & 1 & 2 \\
-    Clone, noPK & 3 & 4 \\
-    Insert, PK  & 5 & 6 \\
-    Insert, noPK & 7 & 8 \\
+    Clone, PK  & 0.20 & 314.153~KB \\
+    Clone, noPK & 0.17 & 294.375~KB \\
+    Insert, PK  & 114.63 & 34~GB \\
+    Insert, noPK & 119.31 & 34~GB \\
     \bottomrule
   \end{tabular}
 \end{table}
 
+Clone operations only copy the metadata for existing objects.  Each metadata file is 157~bytes, so the PK test (2{,}049 objects) reads 314.153~KB while the NoPK test (1{,}920 objects) reads 294.375~KB, matching the space reported in Table \ref{tab:clone}.
+In contrast, insert-based copies materialize every row of the TPC-H 100GB lineitem table, so each insert row in Table \ref{tab:clone} occupies roughly 34~GB, the full table size.
+
 \subsection{Experiment 2: Snapshot Diff/Merge}
-We generate three change sets of different sizes to table T created in 
+We generate four change sets of different sizes to table T created in 
 Experiment \ref{sec:expClone}. 
 \begin{itemize}
-\item \textbf{C1}: update 1{,}000 rows.
-\item \textbf{C2}: update 100{,}000 rows.
-\item \textbf{C3}: update 10{,}000{,}000 rows.
+\item \textbf{C1}: update 1{,}000 rows (1K).
+\item \textbf{C2}: update 10{,}000 rows (10K).
+\item \textbf{C3}: update 100{,}000 rows (100K).
+\item \textbf{C4}: update 1{,}000{,}000 rows (1M).
 \end{itemize}
 After applying these changes, we compute the diff between T and the original 
 lineitem table, and then perform merge back from T to lineitem using \texttt{ACCEPT} mode.
@@ -741,18 +745,20 @@ rows is not trivial.
   \centering
   \caption{BuiltIn vs.\ SQL Time(s)}
   \label{tab:exp2}
-  \begin{tabular}{lcccccc}
-    \toprule
-    & \multicolumn{3}{c}{BuiltIn} & \multicolumn{3}{c}{SQL} \\
-    \cmidrule(lr){2-4} \cmidrule(lr){5-7}
-    \textbf{Operation} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C1} & \textbf{C2} & \textbf{C3} \\
-    \midrule
-    Diff, PK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    Diff, NoPK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    Merge, PK & 0.23 & 6.92 & 125.33 & 548.25 & 500.00 & 510.00 \\
-    Merge, NoPK & 0.23 & 6.92 & 125.33 & 548.25 & 500.00 & 510.00 \\
-    \bottomrule
-  \end{tabular}
+  \resizebox{\linewidth}{!}{
+    \begin{tabular}{lcccccccc}
+      \toprule
+      & \multicolumn{4}{c}{BuiltIn} & \multicolumn{4}{c}{SQL} \\
+      \cmidrule(lr){2-5} \cmidrule(lr){6-9}
+      \textbf{Operation} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} \\
+      \midrule
+      Diff, PK  & 0.08 & 1.45 & 27.07 & 240.50 & 699.50 & 612.50 & 676.00 & 690.00 \\
+      Diff, NoPK  & 0.08 & 1.45 & 27.07 & 240.50 & 699.50 & 612.50 & 676.00 & 690.00 \\
+      Merge, PK & 0.23 & 6.92 & 125.33 & 980.25 & 548.25 & 500.00 & 510.00 & 530.00 \\
+      Merge, NoPK & 0.23 & 6.92 & 125.33 & 980.25 & 548.25 & 500.00 & 510.00 & 530.00 \\
+      \bottomrule
+    \end{tabular}
+  }
 \end{table}
 Built-in operations are much faster than SQL implementations in all cases.
 We observe that the performance of the built-in operations does not depend on 
@@ -788,20 +794,22 @@ times of storage space overhead.
   \centering
   \caption{Collaborative Snapshot Diff/Merge.  Average Time (s) Of Four Workers}
   \label{tab:collab-avg}
-  \begin{tabular}{lcccccc}
-    \toprule
-    & \multicolumn{3}{c}{BuiltIn} & \multicolumn{3}{c}{SQL} \\
-    \cmidrule(lr){2-4} \cmidrule(lr){5-7}
-    \textbf{Operation} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C1} & \textbf{C2} & \textbf{C3} \\
-    \midrule
-    Fork, PK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    Diff, PK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    Merge, PK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    Fork, NoPK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    Diff, NoPK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    Merge, NoPK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    \bottomrule
-  \end{tabular}
+  \resizebox{\linewidth}{!}{
+    \begin{tabular}{lcccccccc}
+      \toprule
+      & \multicolumn{4}{c}{BuiltIn} & \multicolumn{4}{c}{SQL} \\
+      \cmidrule(lr){2-5} \cmidrule(lr){6-9}
+      \textbf{Operation} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} \\
+      \midrule
+      Fork, PK  & 0.08 & 1.45 & 27.07 & 27.07 & 699.50 & 612.50 & 676.00 & 676.00 \\
+      Diff, PK  & 0.08 & 1.45 & 27.07 & 27.07 & 699.50 & 612.50 & 676.00 & 676.00 \\
+      Merge, PK  & 0.08 & 1.45 & 27.07 & 27.07 & 699.50 & 612.50 & 676.00 & 676.00 \\
+      Fork, NoPK  & 0.08 & 1.45 & 27.07 & 27.07 & 699.50 & 612.50 & 676.00 & 676.00 \\
+      Diff, NoPK  & 0.08 & 1.45 & 27.07 & 27.07 & 699.50 & 612.50 & 676.00 & 676.00 \\
+      Merge, NoPK  & 0.08 & 1.45 & 27.07 & 27.07 & 699.50 & 612.50 & 676.00 & 676.00 \\
+      \bottomrule
+    \end{tabular}
+  }
 \end{table}
 
 \subsection{Experiment 4: Collaborative Workload With Conflicts}
@@ -813,20 +821,22 @@ Table \ref{tab:collab-conflict-avg} shows the average time (s) of four workers.
   \centering
   \caption{Collaborative Snapshot Diff/Merge.  Average Time (s) Of Four Workers}
   \label{tab:collab-conflict-avg}
-  \begin{tabular}{lcccccc}
-    \toprule
-    & \multicolumn{3}{c}{BuiltIn} & \multicolumn{3}{c}{SQL} \\
-    \cmidrule(lr){2-4} \cmidrule(lr){5-7}
-    \textbf{Operation} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C1} & \textbf{C2} & \textbf{C3} \\
-    \midrule
-    Fork, PK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    Diff, PK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    Merge, PK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    Fork, NoPK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    Diff, NoPK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    Merge, NoPK  & 0.08 & 1.45 & 27.07 & 699.50 & 612.50 & 676.00 \\
-    \bottomrule
-  \end{tabular}
+  \resizebox{\linewidth}{!}{
+    \begin{tabular}{lcccccccc}
+      \toprule
+      & \multicolumn{4}{c}{BuiltIn} & \multicolumn{4}{c}{SQL} \\
+      \cmidrule(lr){2-5} \cmidrule(lr){6-9}
+      \textbf{Operation} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} \\
+      \midrule
+      Fork, PK  & 0.08 & 1.45 & 27.07 & 27.07 & 699.50 & 612.50 & 676.00 & 676.00 \\
+      Diff, PK  & 0.08 & 1.45 & 27.07 & 27.07 & 699.50 & 612.50 & 676.00 & 676.00 \\
+      Merge, PK  & 0.08 & 1.45 & 27.07 & 27.07 & 699.50 & 612.50 & 676.00 & 676.00 \\
+      Fork, NoPK  & 0.08 & 1.45 & 27.07 & 27.07 & 699.50 & 612.50 & 676.00 & 676.00 \\
+      Diff, NoPK  & 0.08 & 1.45 & 27.07 & 27.07 & 699.50 & 612.50 & 676.00 & 676.00 \\
+      Merge, NoPK  & 0.08 & 1.45 & 27.07 & 27.07 & 699.50 & 612.50 & 676.00 & 676.00 \\
+      \bottomrule
+    \end{tabular}
+  }
 \end{table}
 
 \subsection{Discussion}
