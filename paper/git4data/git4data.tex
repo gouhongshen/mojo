@@ -6,6 +6,8 @@
 \usepackage{graphicx}
 \usepackage{svg}
 \usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 
 \usepackage{listings}
 \lstset{basicstyle=\ttfamily,
@@ -812,6 +814,13 @@ times of storage space overhead.
   }
 \end{table}
 
+\begin{figure}[t]
+  \centering
+  \input{fig_collab_merge.tex}
+  \caption{Merge time across change sets for collaborative workload without conflicts.}
+  \label{fig:collab-merge-plot}
+\end{figure}
+
 \subsection{Experiment 4: Collaborative Workload With Conflicts}
 We perform the same experiments as in Experiment \ref{sec:expcollab} 
 but with conflicts.  We let updates of two engineers have 10\% 
@@ -838,6 +847,13 @@ Table \ref{tab:collab-conflict-avg} shows the average time (s) of four workers.
     \end{tabular}
   }
 \end{table}
+
+\begin{figure}[t]
+  \centering
+  \input{fig_collab_merge_conflict.tex}
+  \caption{Merge time across change sets for collaborative workload with conflicts.}
+  \label{fig:collab-merge-conflict-plot}
+\end{figure}
 
 \subsection{Discussion}
 We have conducted experiments that simulate some typical data 
