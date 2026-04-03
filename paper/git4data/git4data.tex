@@ -1,7 +1,7 @@
 \documentclass[sigconf,nonacm]{acmart} % nonacm removes the ACM reference format
 \usepackage[english]{babel}
 \usepackage{graphicx}
-\usepackage{svg}
+%% \usepackage{svg} % removed: not used, arXiv lacks inkscape
 \usepackage{tikz}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
@@ -1080,7 +1080,8 @@ cases to further improve our version control system.
 
 \renewcommand\bibname{References}
 \bibliographystyle{abbrv}
-\bibliography{ref}
+%% \bibliography{ref} % arXiv: use .bbl directly
+\input{git4data.bbl}
 
 \end{document}
 \endinput
